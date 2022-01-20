@@ -31,7 +31,7 @@ public interface Query {
     
     CommentData createComment(int ticketId, UUID uniqueId, Instant timestamp, String text) throws Exception;
     
-    TicketData createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text) throws Exception;
+    TicketData createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text, int tier) throws Exception;
     
     UserData createUser(UUID uniqueId) throws Exception;
     

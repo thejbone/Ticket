@@ -30,9 +30,7 @@ import io.github.lxgaming.ticket.common.manager.DataManager;
 import io.github.lxgaming.ticket.common.util.Toolbox;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -43,6 +41,7 @@ public class ReadCommand extends AbstractCommand {
     public ReadCommand() {
         addAlias("read");
         addAlias("check");
+        addAlias("list");
         setDescription("Lists Open, Unread tickets or provides details of a specific ticket");
         setPermission("ticket.read.base");
         setUsage("[Id]");
@@ -54,8 +53,18 @@ public class ReadCommand extends AbstractCommand {
         if (arguments.isEmpty()) {
             Collection<TicketData> openTickets = DataManager.getCachedOpenTickets();
             openTickets.removeIf(ticket -> {
-                return !BungeeToolbox.getUniqueId(sender).equals(ticket.getUser()) && !sender.hasPermission("ticket.read.others");
+                if(!BungeeToolbox.getUniqueId(sender).equals(ticket.getUser())){
+                    if(ticket.getTier() <= 1)
+                        return !sender.hasPermission("ticket.read.others.tier1");
+                    if(ticket.getTier() == 2)
+                        return !sender.hasPermission("ticket.read.others.tier2");
+                    if(ticket.getTier() >= 3)
+                        return !sender.hasPermission("ticket.read.others.tier3");
+                    return !sender.hasPermission("ticket.read.others");
+                }
+                return false;
             });
+
             
             if (!openTickets.isEmpty()) {
                 sender.sendMessage(new ComponentBuilder("")
@@ -112,62 +121,84 @@ public class ReadCommand extends AbstractCommand {
                 return;
             }
         }
-        
-        ComponentBuilder componentBuilder = new ComponentBuilder("");
-        componentBuilder.append("----------").color(ChatColor.GREEN).strikethrough(true);
-        componentBuilder.append(" Ticket #" + ticket.getId() + " ").color(ChatColor.YELLOW).strikethrough(false);
-        componentBuilder.append("----------").color(ChatColor.GREEN).strikethrough(true);
-        componentBuilder.append("\n", ComponentBuilder.FormatRetention.NONE);
-        
-        componentBuilder.append("Time").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
-        componentBuilder.append(TicketImpl.getInstance().getConfig().map(Config::getTicket).map(TicketCategory::getDateFormat).flatMap(pattern -> Toolbox.formatInstant(pattern, ticket.getTimestamp())).orElse("Unknown"));
-        
-        componentBuilder.append("\n");
-        componentBuilder.append("Status").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
+
+        ComponentBuilder headerData = new ComponentBuilder("");
+        headerData.append("----------").color(ChatColor.GREEN).strikethrough(true);
+        headerData.append(" Ticket #" + ticket.getId() + " ").color(ChatColor.YELLOW).strikethrough(false);
+        headerData.append("----------").color(ChatColor.GREEN).strikethrough(true);
+        headerData.append("\n", ComponentBuilder.FormatRetention.NONE);
+
+        headerData.append("Time").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
+        headerData.append(TicketImpl.getInstance().getConfig().map(Config::getTicket).map(TicketCategory::getDateFormat).flatMap(pattern -> Toolbox.formatInstant(pattern, ticket.getTimestamp())).orElse("Unknown"));
+
+        ComponentBuilder statusData = new ComponentBuilder("");
+        statusData.append("Status").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
         if (ticket.getStatus() == 0) {
-            componentBuilder.append("Open").color(ChatColor.GREEN);
+            TextComponent openMessage = new TextComponent(ChatColor.GREEN + "Open");
+            openMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket close " + ticket.getId()));
+            openMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to close!").color(ChatColor.RED).create()));
+            statusData.append(openMessage);
         } else if (ticket.getStatus() == 1) {
-            componentBuilder.append("Closed").color(ChatColor.RED);
+            TextComponent closeMessage = new TextComponent(ChatColor.RED + "Closed");
+            closeMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket reopen " + ticket.getId()));
+            closeMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to open!").color(ChatColor.GREEN).create()));
+            statusData.append(closeMessage);
         }
-        
-        componentBuilder.append("\n");
-        componentBuilder.append("User").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
+
+        ComponentBuilder userData = new ComponentBuilder("");
+        userData.append("User").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
         UserData user = DataManager.getUser(ticket.getUser()).orElse(null);
         if (user != null) {
             if (Ticket.getInstance().getPlatform().isOnline(user.getUniqueId())) {
-                componentBuilder.append(user.getName()).color(ChatColor.GREEN);
+                userData.append(user.getName()).color(ChatColor.GREEN);
             } else {
-                componentBuilder.append(user.getName()).color(ChatColor.RED);
+                userData.append(user.getName()).color(ChatColor.RED);
             }
         } else {
-            componentBuilder.append("Unknown").color(ChatColor.WHITE);
+            userData.append("Unknown").color(ChatColor.WHITE);
         }
-        
-        componentBuilder.append("\n");
-        componentBuilder.append("Location").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
+
+        ComponentBuilder locationData = new ComponentBuilder("");
+        locationData.append("Server").color(ChatColor.AQUA).append(": ").color(ChatColor.WHITE);
         
         if (ticket.getLocation().getX() != null && ticket.getLocation().getY() != null && ticket.getLocation().getZ() != null) {
-            componentBuilder.append("" + Toolbox.formatDecimal(ticket.getLocation().getX(), 3)).color(ChatColor.WHITE).append(", ").color(ChatColor.GRAY);
-            componentBuilder.append("" + Toolbox.formatDecimal(ticket.getLocation().getY(), 3)).color(ChatColor.WHITE).append(", ").color(ChatColor.GRAY);
-            componentBuilder.append("" + Toolbox.formatDecimal(ticket.getLocation().getZ(), 3)).color(ChatColor.WHITE).append(" @ ").color(ChatColor.GRAY);
+            locationData.append("" + Toolbox.formatDecimal(ticket.getLocation().getX(), 3)).color(ChatColor.WHITE).append(", ").color(ChatColor.GRAY);
+            locationData.append("" + Toolbox.formatDecimal(ticket.getLocation().getY(), 3)).color(ChatColor.WHITE).append(", ").color(ChatColor.GRAY);
+            locationData.append("" + Toolbox.formatDecimal(ticket.getLocation().getZ(), 3)).color(ChatColor.WHITE).append(" @ ").color(ChatColor.GRAY);
         }
-        
-        componentBuilder.append(StringUtils.defaultIfBlank(ticket.getLocation().getServer(), "Unknown")).color(ChatColor.WHITE);
+
+        locationData.append(StringUtils.defaultIfBlank(ticket.getLocation().getServer(), "Unknown")).color(ChatColor.WHITE);
         if (ticket.getLocation().getDimension() != null) {
-            componentBuilder.append(" (").color(ChatColor.GRAY).append("" + ticket.getLocation().getDimension()).color(ChatColor.WHITE).append(")").color(ChatColor.GRAY);
+            locationData.append(" (").color(ChatColor.GRAY).append("" + ticket.getLocation().getDimension()).color(ChatColor.WHITE).append(")").color(ChatColor.GRAY);
         }
-        
-        componentBuilder.append("\n");
-        componentBuilder.append("Message").color(ChatColor.AQUA).append(": " + ticket.getText()).color(ChatColor.WHITE);
+
+        ComponentBuilder messageData = new ComponentBuilder("");
+        messageData.append("Message").color(ChatColor.AQUA).append(": " + ticket.getText()).color(ChatColor.WHITE);
+
         if (!ticket.getComments().isEmpty()) {
-            componentBuilder.append("\n");
-            componentBuilder.append("Comments").color(ChatColor.AQUA).append(":").color(ChatColor.WHITE);
-            sender.sendMessage(componentBuilder.create());
-            
+            sender.sendMessage(headerData.create());
+            sender.sendMessage(statusData.create());
+            sender.sendMessage(userData.create());
+            sender.sendMessage(locationData.create());
+            messageData.append("\n");
+            messageData.append("======= Comments ========").color(ChatColor.AQUA);
+            sender.sendMessage(messageData.create());
             ticket.getComments().forEach(comment -> sender.sendMessage(buildComment(comment)));
         } else {
-            sender.sendMessage(componentBuilder.create());
+            sender.sendMessage(headerData.create());
+            sender.sendMessage(statusData.create());
+            sender.sendMessage(userData.create());
+            sender.sendMessage(locationData.create());
+            sender.sendMessage(messageData.create());
         }
+        TextComponent replyButton = new TextComponent(ChatColor.GREEN + "[Reply]");
+        replyButton.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ticket comment " + ticket.getId() + " "));
+        replyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to reply!").color(ChatColor.GREEN).create()));
+        TextComponent escalateButton = new TextComponent(ChatColor.RED + "[Escalate]");
+        escalateButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket escalate " + ticket.getId() + " " + ticket.getTier()+1 ));
+        escalateButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to escalate!").color(ChatColor.RED).create()));
+        sender.sendMessage(replyButton);
+        sender.sendMessage(escalateButton);
     }
     
     private BaseComponent[] buildComment(CommentData comment) {
@@ -194,7 +225,8 @@ public class ReadCommand extends AbstractCommand {
     private BaseComponent[] buildTicket(TicketData ticket) {
         ComponentBuilder componentBuilder = new ComponentBuilder("")
                 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + Reference.ID + " read " + ticket.getId()))
-                .append("#" + ticket.getId()).color(ChatColor.GOLD)
+                .append("Tier " + ticket.getTier()).color(ChatColor.BLUE)
+                .append(" #" + ticket.getId()).color(ChatColor.GOLD)
                 .append(" " + Toolbox.getShortTimeString(System.currentTimeMillis() - ticket.getTimestamp().toEpochMilli())).color(ChatColor.GREEN)
                 .append(" by ").color(ChatColor.GOLD);
         

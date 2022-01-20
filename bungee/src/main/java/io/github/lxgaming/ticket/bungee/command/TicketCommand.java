@@ -43,8 +43,8 @@ public class TicketCommand extends Command {
         if (command == null) {
             ComponentBuilder componentBuilder = new ComponentBuilder("");
             componentBuilder.append("Use ").color(ChatColor.BLUE);
-            componentBuilder.append("/" + Reference.ID + " help ").color(ChatColor.GREEN);
-            componentBuilder.append("to view available commands.").color(ChatColor.BLUE);
+            componentBuilder.append("/" + Reference.ID + " open ").color(ChatColor.GREEN);
+            componentBuilder.append("to open a ticket!").color(ChatColor.BLUE);
             sender.sendMessage(componentBuilder.create());
             return;
         }

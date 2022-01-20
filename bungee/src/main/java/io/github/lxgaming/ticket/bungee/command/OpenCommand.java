@@ -115,7 +115,7 @@ public class OpenCommand extends AbstractCommand {
             location.setServer(player.getServer().getInfo().getName());
         }
         
-        TicketData ticket = DataManager.createTicket(user.getUniqueId(), Instant.now(), location, message).orElse(null);
+        TicketData ticket = DataManager.createTicket(user.getUniqueId(), Instant.now(), location, message, 1).orElse(null);
         if (ticket == null) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
             return;

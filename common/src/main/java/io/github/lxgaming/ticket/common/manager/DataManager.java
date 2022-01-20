@@ -170,9 +170,9 @@ public class DataManager {
         }));
     }
     
-    public static Optional<TicketData> createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text) {
+    public static Optional<TicketData> createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text, int tier) {
         try {
-            TicketData ticket = TicketImpl.getInstance().getStorage().getQuery().createTicket(uniqueId, timestamp, location, text);
+            TicketData ticket = TicketImpl.getInstance().getStorage().getQuery().createTicket(uniqueId, timestamp, location, text, tier);
             getTicketCache().put(ticket.getId(), ticket);
             return Optional.of(ticket);
         } catch (Exception ex) {

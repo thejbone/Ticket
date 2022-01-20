@@ -65,6 +65,7 @@ public class MySQLQuery implements Query {
                     + "`location` TEXT NOT NULL,"
                     + "`text` TEXT NOT NULL,"
                     + "`status` TINYINT(1) NOT NULL DEFAULT ?,"
+                    + "`tier` TINYINT(1) NOT NULL,"
                     + "`read` TINYINT(1) NOT NULL DEFAULT ?,"
                     + "PRIMARY KEY (`id`),"
                     + "FOREIGN KEY (`user`) REFERENCES `user` (`unique_id`));")) {
@@ -121,14 +122,15 @@ public class MySQLQuery implements Query {
         }
     }
     
-    public TicketData createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text) throws SQLException {
+    public TicketData createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text, int tier) throws SQLException {
         try (Connection connection = storage.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(""
-                    + "INSERT INTO `ticket`(`user`, `timestamp`, `location`, `text`) VALUE (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    + "INSERT INTO `ticket`(`user`, `timestamp`, `location`, `text`, `tier`) VALUE (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, uniqueId.toString());
                 preparedStatement.setTimestamp(2, Timestamp.from(timestamp));
                 preparedStatement.setString(3, new Gson().toJson(location));
                 preparedStatement.setString(4, text);
+                preparedStatement.setInt(5, tier);
                 preparedStatement.execute();
                 
                 try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
@@ -211,6 +213,7 @@ public class MySQLQuery implements Query {
                     ticket.setLocation(Toolbox.parseJson(resultSet.getString("location"), LocationData.class).orElse(null));
                     ticket.setText(resultSet.getString("text"));
                     ticket.setStatus(resultSet.getInt("status"));
+                    ticket.setTier(resultSet.getInt("tier"));
                     ticket.setRead(resultSet.getBoolean("read"));
                     ticket.setComments(Sets.newTreeSet());
                     return ticket;

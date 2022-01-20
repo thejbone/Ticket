@@ -21,18 +21,7 @@ import io.github.lxgaming.ticket.api.Platform;
 import io.github.lxgaming.ticket.api.Ticket;
 import io.github.lxgaming.ticket.api.util.Logger;
 import io.github.lxgaming.ticket.api.util.Reference;
-import io.github.lxgaming.ticket.bungee.command.BanCommand;
-import io.github.lxgaming.ticket.bungee.command.CloseCommand;
-import io.github.lxgaming.ticket.bungee.command.CommentCommand;
-import io.github.lxgaming.ticket.bungee.command.DebugCommand;
-import io.github.lxgaming.ticket.bungee.command.HelpCommand;
-import io.github.lxgaming.ticket.bungee.command.OpenCommand;
-import io.github.lxgaming.ticket.bungee.command.PardonCommand;
-import io.github.lxgaming.ticket.bungee.command.ReadCommand;
-import io.github.lxgaming.ticket.bungee.command.ReloadCommand;
-import io.github.lxgaming.ticket.bungee.command.ReopenCommand;
-import io.github.lxgaming.ticket.bungee.command.TicketCommand;
-import io.github.lxgaming.ticket.bungee.command.UserCommand;
+import io.github.lxgaming.ticket.bungee.command.*;
 import io.github.lxgaming.ticket.bungee.listener.BungeeListener;
 import io.github.lxgaming.ticket.bungee.listener.RedisListener;
 import io.github.lxgaming.ticket.common.TicketImpl;
@@ -67,6 +56,7 @@ public class BungeePlugin extends Plugin implements Platform {
         ticket.loadTicket();
         
         CommandManager.registerCommand(BanCommand.class);
+        CommandManager.registerCommand(EscalateCommand.class);
         CommandManager.registerCommand(CloseCommand.class);
         CommandManager.registerCommand(CommentCommand.class);
         CommandManager.registerCommand(DebugCommand.class);

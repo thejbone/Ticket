@@ -118,7 +118,7 @@ public class OpenCommand extends AbstractCommand {
             player.getCurrentServer().map(ServerConnection::getServerInfo).map(ServerInfo::getName).ifPresent(location::setServer);
         }
         
-        TicketData ticket = DataManager.createTicket(user.getUniqueId(), Instant.now(), location, message).orElse(null);
+        TicketData ticket = DataManager.createTicket(user.getUniqueId(), Instant.now(), location, message, 1).orElse(null);
         if (ticket == null) {
             source.sendMessage(VelocityToolbox.getTextPrefix().append(TextComponent.of("An error has occurred. Details are available in console.", TextColor.RED)));
             return;

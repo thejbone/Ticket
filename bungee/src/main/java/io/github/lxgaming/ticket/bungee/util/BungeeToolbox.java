@@ -40,8 +40,7 @@ public class BungeeToolbox {
     
     public static ComponentBuilder getTextPrefix() {
         ComponentBuilder componentBuilder = new ComponentBuilder("");
-        componentBuilder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, getPluginInformation().create()));
-        componentBuilder.append("[" + Reference.NAME + "]").bold(true).color(ChatColor.BLUE);
+        componentBuilder.append("[" + Reference.NAME + "]").bold(true).color(ChatColor.AQUA);
         componentBuilder.append(" ", ComponentBuilder.FormatRetention.NONE);
         return componentBuilder;
     }

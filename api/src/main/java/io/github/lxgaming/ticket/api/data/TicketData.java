@@ -30,8 +30,9 @@ public class TicketData implements Comparable<TicketData> {
     private String text;
     private int status;
     private boolean read;
+    private int tier;
     private Collection<CommentData> comments;
-    
+
     public int getId() {
         return id;
     }
@@ -79,6 +80,10 @@ public class TicketData implements Comparable<TicketData> {
     public void setStatus(int status) {
         this.status = status;
     }
+
+    public int getTier() { return tier; }
+
+    public void setTier(int tier) { this.tier = tier; }
     
     public boolean isRead() {
         return read;
