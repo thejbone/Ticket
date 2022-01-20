@@ -2,6 +2,6 @@ name: ${name}
 main: io.github.lxgaming.ticket.bungee.BungeePlugin
 version: ${version}
 description: Ticket System
-author: LX_Gaming
+author: LX_Gaming & TheJbone
 website: https://lxgaming.github.io/
 softDepends: [Location, RedisBungee]

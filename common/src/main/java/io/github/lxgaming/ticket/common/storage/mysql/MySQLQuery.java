@@ -144,6 +144,7 @@ public class MySQLQuery implements Query {
                     ticket.setTimestamp(timestamp);
                     ticket.setLocation(location);
                     ticket.setText(text);
+                    ticket.setTier(tier);
                     ticket.setComments(Sets.newTreeSet());
                     return ticket;
                 }
@@ -225,7 +226,7 @@ public class MySQLQuery implements Query {
     public Collection<Integer> getOpenTickets() throws SQLException {
         try (Connection connection = storage.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(""
-                    + "SELECT `id` FROM `ticket` WHERE `status` = ?")) {
+                    + "SELECT `id` FROM `ticket` WHERE `status` = ? ORDER BY `tier` ASC")) {
                 preparedStatement.setInt(1, 0);
                 
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -302,10 +303,11 @@ public class MySQLQuery implements Query {
     public boolean updateTicket(TicketData ticket) {
         try (Connection connection = storage.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(""
-                    + "UPDATE `ticket` SET `read` = ?, `status` = ? WHERE `id` = ?")) {
+                    + "UPDATE `ticket` SET `read` = ?, `status` = ?, `tier` = ? WHERE `id` = ?")) {
                 preparedStatement.setBoolean(1, ticket.isRead());
                 preparedStatement.setInt(2, ticket.getStatus());
-                preparedStatement.setInt(3, ticket.getId());
+                preparedStatement.setInt(3, ticket.getTier());
+                preparedStatement.setInt(4, ticket.getId());
                 return preparedStatement.executeUpdate() != 0;
             }
         } catch (SQLException ex) {

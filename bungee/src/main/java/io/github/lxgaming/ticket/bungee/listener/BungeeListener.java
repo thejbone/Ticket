@@ -55,6 +55,17 @@ public class BungeeListener implements Listener {
             
             if (event.getPlayer().hasPermission("ticket.read.others")) {
                 Collection<TicketData> openTickets = DataManager.getCachedOpenTickets();
+                openTickets.removeIf(ticket -> {
+                    if(!BungeeToolbox.getUniqueId(event.getPlayer()).equals(ticket.getUser())){
+                        if(ticket.getTier() <= 1)
+                            return !event.getPlayer().hasPermission("ticket.read.others.tier1");
+                        if(ticket.getTier() == 2)
+                            return !event.getPlayer().hasPermission("ticket.read.others.tier2");
+                        if(ticket.getTier() >= 3)
+                            return !event.getPlayer().hasPermission("ticket.read.others.tier3");
+                    }
+                    return false;
+                });
                 if (!openTickets.isEmpty()) {
                     ComponentBuilder componentBuilder = new ComponentBuilder("");
                     componentBuilder.append(BungeeToolbox.getTextPrefix().create());
@@ -141,4 +152,5 @@ public class BungeeListener implements Listener {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
         }
     }
+
 }

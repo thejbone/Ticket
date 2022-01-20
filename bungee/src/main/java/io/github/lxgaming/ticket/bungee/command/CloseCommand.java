@@ -70,7 +70,19 @@ public class CloseCommand extends AbstractCommand {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You are not the owner of that ticket").color(ChatColor.RED).create());
             return;
         }
-        
+
+        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.close.tier1")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to close tier 1!").color(ChatColor.RED).create());
+            return;
+        }
+        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.close.tier2")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to close tier 2!").color(ChatColor.RED).create());
+            return;
+        }
+        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.close.tier3")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to close tier 3!").color(ChatColor.RED).create());
+            return;
+        }
         if (ticket.getStatus() == 1) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("Ticket is already closed").color(ChatColor.RED).create());
             return;

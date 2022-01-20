@@ -2,6 +2,7 @@ package io.github.lxgaming.ticket.bungee.command;
 
 import io.github.lxgaming.ticket.api.Ticket;
 import io.github.lxgaming.ticket.api.data.TicketData;
+import io.github.lxgaming.ticket.api.data.UserData;
 import io.github.lxgaming.ticket.bungee.BungeePlugin;
 import io.github.lxgaming.ticket.bungee.util.BungeeToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
@@ -47,6 +48,15 @@ public class EscalateCommand extends AbstractCommand {
             return;
         }
 
+        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.escalate.tier1")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to escalate to tier 2!").color(ChatColor.RED).create());
+            return;
+        }
+        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.escalate.tier2")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to escalate to tier 3!").color(ChatColor.RED).create());
+            return;
+        }
+
         if (ticket.getTier() >= 3) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("Ticket is at the max tier").color(ChatColor.RED).create());
             return;
@@ -55,6 +65,12 @@ public class EscalateCommand extends AbstractCommand {
         ticket.setTier(ticket.getTier()+1);
 
         if (!TicketImpl.getInstance().getStorage().getQuery().updateTicket(ticket)) {
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
+            return;
+        }
+
+        UserData user = DataManager.getOrCreateUser(BungeeToolbox.getUniqueId(sender)).orElse(null);
+        if (user == null) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
             return;
         }

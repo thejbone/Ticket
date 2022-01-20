@@ -18,6 +18,7 @@ package io.github.lxgaming.ticket.api.data;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -119,9 +120,11 @@ public class TicketData implements Comparable<TicketData> {
         TicketData ticket = (TicketData) obj;
         return Objects.equals(getId(), ticket.getId());
     }
-    
+
+
     @Override
     public int hashCode() {
         return Objects.hash(getId());
     }
 }
+

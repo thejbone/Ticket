@@ -97,7 +97,20 @@ public class CommentCommand extends AbstractCommand {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You are not the owner of that ticket").color(ChatColor.RED).create());
             return;
         }
-        
+
+        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.comment.tier1")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to comment on tier 1!").color(ChatColor.RED).create());
+            return;
+        }
+        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.comment.tier2")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to comment on tier 2!").color(ChatColor.RED).create());
+            return;
+        }
+        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.comment.tier3")){
+            sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to comment on tier 3!").color(ChatColor.RED).create());
+            return;
+        }
+
         if (!sender.hasPermission("ticket.comment.exempt.cooldown")) {
             long time = System.currentTimeMillis() - TicketImpl.getInstance().getConfig().map(Config::getTicket).map(TicketCategory::getCommentDelay).orElse(0L);
             for (CommentData comment : ticket.getComments()) {

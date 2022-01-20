@@ -18,6 +18,7 @@ package io.github.lxgaming.ticket.bungee.command;
 
 import io.github.lxgaming.ticket.api.Ticket;
 import io.github.lxgaming.ticket.api.data.CommentData;
+import io.github.lxgaming.ticket.api.data.SortByTicketTier;
 import io.github.lxgaming.ticket.api.data.TicketData;
 import io.github.lxgaming.ticket.api.data.UserData;
 import io.github.lxgaming.ticket.api.util.Reference;
@@ -31,10 +32,12 @@ import io.github.lxgaming.ticket.common.util.Toolbox;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.*;
+import net.md_5.bungee.protocol.packet.Chat;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReadCommand extends AbstractCommand {
     
@@ -54,39 +57,42 @@ public class ReadCommand extends AbstractCommand {
             Collection<TicketData> openTickets = DataManager.getCachedOpenTickets();
             openTickets.removeIf(ticket -> {
                 if(!BungeeToolbox.getUniqueId(sender).equals(ticket.getUser())){
-                    if(ticket.getTier() <= 1)
+                    if(ticket.getTier() == 1)
                         return !sender.hasPermission("ticket.read.others.tier1");
                     if(ticket.getTier() == 2)
                         return !sender.hasPermission("ticket.read.others.tier2");
-                    if(ticket.getTier() >= 3)
+                    if(ticket.getTier() == 3)
                         return !sender.hasPermission("ticket.read.others.tier3");
-                    return !sender.hasPermission("ticket.read.others");
                 }
                 return false;
             });
 
-            
-            if (!openTickets.isEmpty()) {
+            List<TicketData> sortedOpenList = openTickets.stream().sorted(new SortByTicketTier()).collect(Collectors.toList());
+
+            if (!sortedOpenList.isEmpty()) {
+
                 sender.sendMessage(new ComponentBuilder("")
                         .append("----------").color(ChatColor.GREEN).strikethrough(true)
                         .append(" " + openTickets.size()).color(ChatColor.YELLOW).strikethrough(false)
-                        .append(" Open " + Toolbox.formatUnit(openTickets.size(), "Ticket", "Tickets") + " ").color(ChatColor.GREEN)
+                        .append(" Open " + Toolbox.formatUnit(sortedOpenList.size(), "Ticket", "Tickets") + " ").color(ChatColor.GREEN)
                         .append("----------").color(ChatColor.GREEN).strikethrough(true)
                         .create());
-                
-                openTickets.forEach(ticket -> sender.sendMessage(buildTicket(ticket)));
+
+                sortedOpenList.forEach(ticket -> sender.sendMessage(buildTicket(ticket)));
             }
             
             Collection<TicketData> unreadTickets = DataManager.getCachedUnreadTickets(BungeeToolbox.getUniqueId(sender));
-            if (!unreadTickets.isEmpty()) {
+            List<TicketData> sortedUnreadTickets = unreadTickets.stream().sorted(new SortByTicketTier()).collect(Collectors.toList());
+
+            if (!sortedUnreadTickets.isEmpty()) {
                 sender.sendMessage(new ComponentBuilder("")
                         .append("----------").color(ChatColor.GREEN).strikethrough(true)
                         .append(" " + unreadTickets.size()).color(ChatColor.YELLOW).strikethrough(false)
-                        .append(" Unread " + Toolbox.formatUnit(unreadTickets.size(), "Ticket", "Tickets") + " ").color(ChatColor.GREEN)
+                        .append(" Unread " + Toolbox.formatUnit(sortedUnreadTickets.size(), "Ticket", "Tickets") + " ").color(ChatColor.GREEN)
                         .append("----------").color(ChatColor.GREEN).strikethrough(true)
                         .create());
-                
-                unreadTickets.forEach(ticket -> sender.sendMessage(buildTicket(ticket)));
+
+                sortedUnreadTickets.forEach(ticket -> sender.sendMessage(buildTicket(ticket)));
             }
             
             if (openTickets.isEmpty() && unreadTickets.isEmpty()) {
@@ -122,9 +128,16 @@ public class ReadCommand extends AbstractCommand {
             }
         }
 
+        ChatColor tierColor = ChatColor.BLUE;
+        if(ticket.getTier() == 1)
+            tierColor = ChatColor.GREEN;
+        if(ticket.getTier() == 2)
+            tierColor = ChatColor.AQUA;
+        if(ticket.getTier() == 3)
+            tierColor = ChatColor.RED;
         ComponentBuilder headerData = new ComponentBuilder("");
         headerData.append("----------").color(ChatColor.GREEN).strikethrough(true);
-        headerData.append(" Ticket #" + ticket.getId() + " ").color(ChatColor.YELLOW).strikethrough(false);
+        headerData.append(" Ticket #" + ticket.getId() + " ").color(ChatColor.YELLOW).strikethrough(false).append("- Tier " + ticket.getTier() + " ").color(tierColor).strikethrough(false);
         headerData.append("----------").color(ChatColor.GREEN).strikethrough(true);
         headerData.append("\n", ComponentBuilder.FormatRetention.NONE);
 
@@ -223,9 +236,16 @@ public class ReadCommand extends AbstractCommand {
     }
     
     private BaseComponent[] buildTicket(TicketData ticket) {
+        ChatColor tierColor = ChatColor.BLUE;
+        if(ticket.getTier() == 1)
+            tierColor = ChatColor.GREEN;
+        if(ticket.getTier() == 2)
+            tierColor = ChatColor.AQUA;
+        if(ticket.getTier() == 3)
+            tierColor = ChatColor.RED;
         ComponentBuilder componentBuilder = new ComponentBuilder("")
                 .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + Reference.ID + " read " + ticket.getId()))
-                .append("Tier " + ticket.getTier()).color(ChatColor.BLUE)
+                .append("Tier " + ticket.getTier()).color(tierColor)
                 .append(" #" + ticket.getId()).color(ChatColor.GOLD)
                 .append(" " + Toolbox.getShortTimeString(System.currentTimeMillis() - ticket.getTimestamp().toEpochMilli())).color(ChatColor.GREEN)
                 .append(" by ").color(ChatColor.GOLD);
