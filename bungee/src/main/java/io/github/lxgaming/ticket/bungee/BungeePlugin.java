@@ -16,6 +16,7 @@
 
 package io.github.lxgaming.ticket.bungee;
 
+import com.google.common.util.concurrent.Runnables;
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 import io.github.lxgaming.ticket.api.Platform;
 import io.github.lxgaming.ticket.api.Ticket;
@@ -23,14 +24,21 @@ import io.github.lxgaming.ticket.api.util.Logger;
 import io.github.lxgaming.ticket.api.util.Reference;
 import io.github.lxgaming.ticket.bungee.command.*;
 import io.github.lxgaming.ticket.bungee.listener.BungeeListener;
+//import io.github.lxgaming.ticket.bungee.listener.DiscordListener;
 import io.github.lxgaming.ticket.bungee.listener.RedisListener;
+import io.github.lxgaming.ticket.bungee.util.ActivityToolbox;
+import io.github.lxgaming.ticket.bungee.util.DiscordToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
 import io.github.lxgaming.ticket.common.configuration.Config;
 import io.github.lxgaming.ticket.common.manager.CommandManager;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 
+import javax.security.auth.login.LoginException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +46,13 @@ import java.util.UUID;
 public class BungeePlugin extends Plugin implements Platform {
     
     private static BungeePlugin instance;
-    
+
+    public DiscordToolbox getDiscordToolbox() {
+        return discordToolbox;
+    }
+
+    private DiscordToolbox discordToolbox;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -52,9 +66,9 @@ public class BungeePlugin extends Plugin implements Platform {
                         getLogger().info(message);
                     }
                 });
-        
+
         ticket.loadTicket();
-        
+
         CommandManager.registerCommand(BanCommand.class);
         CommandManager.registerCommand(EscalateCommand.class);
         CommandManager.registerCommand(CloseCommand.class);
@@ -75,6 +89,8 @@ public class BungeePlugin extends Plugin implements Platform {
             getProxy().getPluginManager().registerListener(getInstance(), new RedisListener());
             RedisBungee.getApi().registerPubSubChannels(Reference.ID);
         }
+
+        discordToolbox = new DiscordToolbox();
     }
     
     @Override
@@ -95,7 +111,7 @@ public class BungeePlugin extends Plugin implements Platform {
         
         return Optional.ofNullable(ProxyServer.getInstance().getPlayer(uniqueId)).map(ProxiedPlayer::isConnected).orElse(false);
     }
-    
+
     @Override
     public Optional<String> getUsername(UUID uniqueId) {
         if (uniqueId == Platform.CONSOLE_UUID) {
@@ -113,4 +129,5 @@ public class BungeePlugin extends Plugin implements Platform {
     public static BungeePlugin getInstance() {
         return instance;
     }
+
 }

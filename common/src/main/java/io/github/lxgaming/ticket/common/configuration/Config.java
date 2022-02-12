@@ -17,6 +17,7 @@
 package io.github.lxgaming.ticket.common.configuration;
 
 import io.github.lxgaming.ticket.common.configuration.category.CommandCategory;
+import io.github.lxgaming.ticket.common.configuration.category.DiscordCategory;
 import io.github.lxgaming.ticket.common.configuration.category.StorageCategory;
 import io.github.lxgaming.ticket.common.configuration.category.TicketCategory;
 
@@ -30,7 +31,8 @@ public class Config {
     private CommandCategory command = new CommandCategory();
     private TicketCategory ticket = new TicketCategory();
     private StorageCategory storage = new StorageCategory();
-    
+    private DiscordCategory discord = new DiscordCategory();
+
     public boolean isDebug() {
         return debug;
     }
@@ -57,5 +59,9 @@ public class Config {
     
     public StorageCategory getStorage() {
         return storage;
+    }
+
+    public DiscordCategory getDiscord() {
+        return discord;
     }
 }

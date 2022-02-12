@@ -71,7 +71,7 @@ public class ReopenCommand extends AbstractCommand {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to reopen tier 1!").color(ChatColor.RED).create());
             return;
         }
-        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.reopen.tier2")){
+        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.reopen.tier2")){
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to reopen tier 2!").color(ChatColor.RED).create());
             return;
         }
@@ -106,7 +106,8 @@ public class ReopenCommand extends AbstractCommand {
         if (player != null) {
             player.sendMessage(baseComponents);
         }
-        
+        BungeePlugin.getInstance().getDiscordToolbox().sendTicketData(ticket, false);
+
         BungeeToolbox.broadcast(player, "ticket.reopen.notify", baseComponents);
     }
 }

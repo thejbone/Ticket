@@ -105,7 +105,26 @@ public class DataManager {
         
         return tickets;
     }
-    
+    public static Collection<TicketData> getCachedOpenTicketsByTier(int tier) {
+        Collection<TicketData> tickets = Sets.newTreeSet();
+        for (TicketData ticket : getTicketCache().asMap().values()) {
+            if (ticket.getStatus() == 0 && ticket.getTier() == tier) {
+                getCachedTicket(ticket.getId()).ifPresent(tickets::add);
+            }
+        }
+        return tickets;
+    }
+
+    public static Collection<TicketData> getCachedOpenTicketsByDiscordId(long discordId) {
+        Collection<TicketData> tickets = Sets.newTreeSet();
+        for (TicketData ticket : getTicketCache().asMap().values()) {
+            if (ticket.getStatus() == 0 && ticket.getDiscordMsgId() == discordId) {
+                getCachedTicket(ticket.getId()).ifPresent(tickets::add);
+            }
+        }
+        return tickets;
+    }
+
     public static Collection<TicketData> getCachedUnreadTickets(UUID uniqueId) {
         Collection<TicketData> tickets = Sets.newTreeSet();
         for (TicketData ticket : getTicketCache().asMap().values()) {

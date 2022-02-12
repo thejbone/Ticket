@@ -21,6 +21,7 @@ import io.github.lxgaming.ticket.api.data.TicketData;
 import io.github.lxgaming.ticket.api.data.UserData;
 import io.github.lxgaming.ticket.api.util.Reference;
 import io.github.lxgaming.ticket.bungee.BungeePlugin;
+import io.github.lxgaming.ticket.bungee.util.ActivityToolbox;
 import io.github.lxgaming.ticket.bungee.util.BungeeToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
 import io.github.lxgaming.ticket.common.command.AbstractCommand;
@@ -36,6 +37,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.accessibility.AccessibleIcon;
 import java.time.Instant;
 import java.util.List;
 
@@ -121,33 +123,13 @@ public class CommentCommand extends AbstractCommand {
                 }
             }
         }
-        
-        CommentData comment = DataManager.createComment(ticket.getId(), user.getUniqueId(), Instant.now(), message).orElse(null);
-        if (comment == null) {
-            sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
-            return;
-        }
-        
-        BungeeToolbox.sendRedisMessage("TicketComment", jsonObject -> {
-            jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
-            jsonObject.add("user", Configuration.getGson().toJsonTree(user));
+
+        ActivityToolbox.sendComment(ticket, user, message, true).whenComplete((result,ex) -> {
+           if(result == null || !result){
+               BungeePlugin.getInstance().getLogger().info("Failed to send comment!!!");
+           } else if (ex != null){
+               ex.printStackTrace();
+           }
         });
-        
-        BaseComponent[] baseComponents = BungeeToolbox.getTextPrefix()
-                .append(user.getName()).color(ChatColor.YELLOW)
-                .append(" added a comment to Ticket #" + ticket.getId()).color(ChatColor.GOLD).create();
-        
-        ProxiedPlayer player = BungeePlugin.getInstance().getProxy().getPlayer(ticket.getUser());
-        if (player != null) {
-            player.sendMessage(baseComponents);
-            
-            String command = "/" + Reference.ID + " read " + ticket.getId();
-            player.sendMessage(BungeeToolbox.getTextPrefix()
-                    .append("Use ").color(ChatColor.GOLD)
-                    .append(command).color(ChatColor.GREEN).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
-                    .append(" to view your ticket").color(ChatColor.GOLD).create());
-        }
-        
-        BungeeToolbox.broadcast(player, "ticket.comment.notify", baseComponents);
     }
 }

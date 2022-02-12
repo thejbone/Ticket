@@ -48,11 +48,11 @@ public class EscalateCommand extends AbstractCommand {
             return;
         }
 
-        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.escalate.tier1")){
+        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.escalate.tier2")){
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to escalate to tier 2!").color(ChatColor.RED).create());
             return;
         }
-        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.escalate.tier2")){
+        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.escalate.tier3")){
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to escalate to tier 3!").color(ChatColor.RED).create());
             return;
         }
@@ -89,6 +89,17 @@ public class EscalateCommand extends AbstractCommand {
         if (player != null) {
             player.sendMessage(baseComponents);
         }
+        BungeePlugin.getInstance().getDiscordToolbox().sendTicketData(ticket,true).whenComplete((result, exception) -> {
+            if(exception != null || result == null){
+                exception.printStackTrace();
+            } else {
+                ticket.setDiscordMsgId(result);
+                if (!TicketImpl.getInstance().getStorage().getQuery().updateTicket(ticket)) {
+                    sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
+                    return;
+                }
+            }
+        });
 
         BungeeToolbox.broadcast(player, "ticket.escalate.notify", baseComponents);
     }

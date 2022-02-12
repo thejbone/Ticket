@@ -48,7 +48,9 @@ public class CloseCommand extends AbstractCommand {
     
     @Override
     public void execute(Object object, List<String> arguments) {
+
         CommandSender sender = (CommandSender) object;
+
         if (arguments.isEmpty()) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("Invalid arguments: " + getUsage()).color(ChatColor.RED).create());
             return;
@@ -75,11 +77,11 @@ public class CloseCommand extends AbstractCommand {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to close tier 1!").color(ChatColor.RED).create());
             return;
         }
-        if(ticket.getTier() == 1 && !sender.hasPermission("ticket.close.tier2")){
+        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.close.tier2")){
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to close tier 2!").color(ChatColor.RED).create());
             return;
         }
-        if(ticket.getTier() == 2 && !sender.hasPermission("ticket.close.tier3")){
+        if(ticket.getTier() == 3 && !sender.hasPermission("ticket.close.tier3")){
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("You do not have permission to close tier 3!").color(ChatColor.RED).create());
             return;
         }
@@ -102,29 +104,29 @@ public class CloseCommand extends AbstractCommand {
         }
         
         BungeeToolbox.sendRedisMessage("TicketClose", jsonObject -> {
-            jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
-            jsonObject.add("user", Configuration.getGson().toJsonTree(user));
-        });
-        
-        BaseComponent[] baseComponents = BungeeToolbox.getTextPrefix()
-                .append("Ticket #" + ticket.getId() + " was closed by ").color(ChatColor.GOLD)
-                .append(user.getName()).color(ChatColor.YELLOW).create();
-        
-        String command = "/" + Reference.ID + " read " + ticket.getId();
-        
-        if (arguments.isEmpty()) {
-            // Forces the expiry to be recalculated
-            DataManager.getCachedTicket(ticketId);
-            ProxiedPlayer player = BungeePlugin.getInstance().getProxy().getPlayer(ticket.getUser());
-            if (player != null) {
-                player.sendMessage(baseComponents);
-                player.sendMessage(BungeeToolbox.getTextPrefix()
-                        .append("Use ").color(ChatColor.GOLD)
-                        .append(command).color(ChatColor.GREEN).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
-                        .append(" to view your ticket").color(ChatColor.GOLD).create());
-            }
-            
-            BungeeToolbox.broadcast(player, "ticket.close.notify", baseComponents);
+                jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
+                jsonObject.add("user", Configuration.getGson().toJsonTree(user));
+            });
+
+            BaseComponent[] baseComponents = BungeeToolbox.getTextPrefix()
+                    .append("Ticket #" + ticket.getId() + " was closed by ").color(ChatColor.GOLD)
+                    .append(user.getName()).color(ChatColor.YELLOW).create();
+
+            String command = "/" + Reference.ID + " read " + ticket.getId();
+
+            if (arguments.isEmpty()) {
+                // Forces the expiry to be recalculated
+                DataManager.getCachedTicket(ticketId);
+                ProxiedPlayer player = BungeePlugin.getInstance().getProxy().getPlayer(ticket.getUser());
+                if (player != null) {
+                    player.sendMessage(baseComponents);
+                    player.sendMessage(BungeeToolbox.getTextPrefix()
+                            .append("Use ").color(ChatColor.GOLD)
+                            .append(command).color(ChatColor.GREEN).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
+                            .append(" to view your ticket").color(ChatColor.GOLD).create());
+                }
+
+                BungeeToolbox.broadcast(player, "ticket.close.notify", baseComponents);
             return;
         }
         
@@ -153,7 +155,8 @@ public class CloseCommand extends AbstractCommand {
                     .append(command).color(ChatColor.GREEN).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
                     .append(" to view your ticket").color(ChatColor.GOLD).create());
         }
-        
+        BungeePlugin.getInstance().getDiscordToolbox().closeTicket(ticket);
+
         BungeeToolbox.broadcast(player, "ticket.close.notify", baseComponents);
     }
 }

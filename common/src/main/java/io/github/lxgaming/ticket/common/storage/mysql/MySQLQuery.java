@@ -66,6 +66,7 @@ public class MySQLQuery implements Query {
                     + "`text` TEXT NOT NULL,"
                     + "`status` TINYINT(1) NOT NULL DEFAULT ?,"
                     + "`tier` TINYINT(1) NOT NULL,"
+                    + "`discordMsgId` LONG,"
                     + "`read` TINYINT(1) NOT NULL DEFAULT ?,"
                     + "PRIMARY KEY (`id`),"
                     + "FOREIGN KEY (`user`) REFERENCES `user` (`unique_id`));")) {
@@ -215,6 +216,7 @@ public class MySQLQuery implements Query {
                     ticket.setText(resultSet.getString("text"));
                     ticket.setStatus(resultSet.getInt("status"));
                     ticket.setTier(resultSet.getInt("tier"));
+                    ticket.setDiscordMsgId(resultSet.getLong("discordMsgId"));
                     ticket.setRead(resultSet.getBoolean("read"));
                     ticket.setComments(Sets.newTreeSet());
                     return ticket;
@@ -303,11 +305,12 @@ public class MySQLQuery implements Query {
     public boolean updateTicket(TicketData ticket) {
         try (Connection connection = storage.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(""
-                    + "UPDATE `ticket` SET `read` = ?, `status` = ?, `tier` = ? WHERE `id` = ?")) {
+                    + "UPDATE `ticket` SET `read` = ?, `status` = ?, `tier` = ?, `discordMsgId` = ? WHERE `id` = ?")) {
                 preparedStatement.setBoolean(1, ticket.isRead());
                 preparedStatement.setInt(2, ticket.getStatus());
                 preparedStatement.setInt(3, ticket.getTier());
-                preparedStatement.setInt(4, ticket.getId());
+                preparedStatement.setLong(4, ticket.getDiscordMsgId());
+                preparedStatement.setInt(5, ticket.getId());
                 return preparedStatement.executeUpdate() != 0;
             }
         } catch (SQLException ex) {

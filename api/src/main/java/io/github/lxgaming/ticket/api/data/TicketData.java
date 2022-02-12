@@ -32,6 +32,7 @@ public class TicketData implements Comparable<TicketData> {
     private int status;
     private boolean read;
     private int tier;
+    private long discordMsgId;
     private Collection<CommentData> comments;
 
     public int getId() {
@@ -125,6 +126,14 @@ public class TicketData implements Comparable<TicketData> {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
+    }
+
+    public long getDiscordMsgId() {
+        return discordMsgId;
+    }
+
+    public void setDiscordMsgId(long discordMsgId) {
+        this.discordMsgId = discordMsgId;
     }
 }
 

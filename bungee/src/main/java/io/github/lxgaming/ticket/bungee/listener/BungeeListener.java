@@ -152,5 +152,4 @@ public class BungeeListener implements Listener {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
         }
     }
-
 }

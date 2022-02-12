@@ -23,6 +23,9 @@ dependencies {
     compileOnly("com.imaginarycode.minecraft:RedisBungee:0.3.8-INTERIM")
     compileOnly("io.github.lxgaming:location-api:${locationVersion}")
     compileOnly("net.md-5:bungeecord-api:${bungeecordVersion}")
+    shadow("net.dv8tion:JDA:4.4.0_350") {
+        exclude module: 'opus-java'
+    }
     shadow("org.slf4j:slf4j-nop:${slf4jVersion}")
 }
 

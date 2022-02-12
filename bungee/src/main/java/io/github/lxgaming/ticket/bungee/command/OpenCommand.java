@@ -22,6 +22,7 @@ import io.github.lxgaming.ticket.api.data.TicketData;
 import io.github.lxgaming.ticket.api.data.UserData;
 import io.github.lxgaming.ticket.bungee.BungeePlugin;
 import io.github.lxgaming.ticket.bungee.util.BungeeToolbox;
+import io.github.lxgaming.ticket.bungee.util.DiscordToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
 import io.github.lxgaming.ticket.common.command.AbstractCommand;
 import io.github.lxgaming.ticket.common.configuration.Config;
@@ -114,22 +115,34 @@ public class OpenCommand extends AbstractCommand {
         } else {
             location.setServer(player.getServer().getInfo().getName());
         }
-        
+
         TicketData ticket = DataManager.createTicket(user.getUniqueId(), Instant.now(), location, message, 1).orElse(null);
         if (ticket == null) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
             return;
         }
-        
+
         BungeeToolbox.sendRedisMessage("TicketOpen", jsonObject -> {
             jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
             jsonObject.add("user", Configuration.getGson().toJsonTree(user));
         });
-        
+
         sender.sendMessage(BungeeToolbox.getTextPrefix().append("You opened a ticket, it has been assigned ID #" + ticket.getId()).color(ChatColor.GOLD).create());
         BungeeToolbox.broadcast(sender, "ticket.open.notify", BungeeToolbox.getTextPrefix()
                 .append("A new ticket has been opened by ").color(ChatColor.GREEN)
                 .append(user.getName()).color(ChatColor.YELLOW)
                 .append(", id assigned #" + ticket.getId()).color(ChatColor.GREEN).create());
+
+        BungeePlugin.getInstance().getDiscordToolbox().sendTicketData(ticket,false).whenComplete((result, exception) -> {
+            if(exception != null || result == null){
+                exception.printStackTrace();
+            } else {
+                ticket.setDiscordMsgId(result);
+                if (!TicketImpl.getInstance().getStorage().getQuery().updateTicket(ticket)) {
+                    sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
+                    return;
+                }
+            }
+        });
     }
 }
