@@ -16,25 +16,18 @@
 
 package io.github.lxgaming.ticket.bungee.command;
 
-import io.github.lxgaming.ticket.api.data.CommentData;
 import io.github.lxgaming.ticket.api.data.TicketData;
 import io.github.lxgaming.ticket.api.data.UserData;
-import io.github.lxgaming.ticket.api.util.Reference;
-import io.github.lxgaming.ticket.bungee.BungeePlugin;
+import io.github.lxgaming.ticket.bungee.util.ActivityToolbox;
 import io.github.lxgaming.ticket.bungee.util.BungeeToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
 import io.github.lxgaming.ticket.common.command.AbstractCommand;
-import io.github.lxgaming.ticket.common.configuration.Configuration;
 import io.github.lxgaming.ticket.common.manager.DataManager;
 import io.github.lxgaming.ticket.common.util.Toolbox;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.Instant;
 import java.util.List;
 
 public class CloseCommand extends AbstractCommand {
@@ -102,61 +95,15 @@ public class CloseCommand extends AbstractCommand {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
             return;
         }
-        
-        BungeeToolbox.sendRedisMessage("TicketClose", jsonObject -> {
-                jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
-                jsonObject.add("user", Configuration.getGson().toJsonTree(user));
-            });
 
-            BaseComponent[] baseComponents = BungeeToolbox.getTextPrefix()
-                    .append("Ticket #" + ticket.getId() + " was closed by ").color(ChatColor.GOLD)
-                    .append(user.getName()).color(ChatColor.YELLOW).create();
-
-            String command = "/" + Reference.ID + " read " + ticket.getId();
-
-            if (arguments.isEmpty()) {
-                // Forces the expiry to be recalculated
-                DataManager.getCachedTicket(ticketId);
-                ProxiedPlayer player = BungeePlugin.getInstance().getProxy().getPlayer(ticket.getUser());
-                if (player != null) {
-                    player.sendMessage(baseComponents);
-                    player.sendMessage(BungeeToolbox.getTextPrefix()
-                            .append("Use ").color(ChatColor.GOLD)
-                            .append(command).color(ChatColor.GREEN).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
-                            .append(" to view your ticket").color(ChatColor.GOLD).create());
-                }
-
-                BungeeToolbox.broadcast(player, "ticket.close.notify", baseComponents);
-            return;
-        }
-        
         String message = Toolbox.convertColor(String.join(" ", arguments));
         if (message.length() > 256) {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("Message length may not exceed 256").color(ChatColor.RED).create());
             return;
         }
-        
-        CommentData comment = DataManager.createComment(ticket.getId(), user.getUniqueId(), Instant.now(), message).orElse(null);
-        if (comment == null) {
-            sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
-            return;
-        }
-        
-        BungeeToolbox.sendRedisMessage("TicketComment", jsonObject -> {
-            jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
-            jsonObject.add("user", Configuration.getGson().toJsonTree(user));
-        });
-        
-        ProxiedPlayer player = BungeePlugin.getInstance().getProxy().getPlayer(ticket.getUser());
-        if (player != null) {
-            player.sendMessage(baseComponents);
-            player.sendMessage(BungeeToolbox.getTextPrefix()
-                    .append("Use ").color(ChatColor.GOLD)
-                    .append(command).color(ChatColor.GREEN).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
-                    .append(" to view your ticket").color(ChatColor.GOLD).create());
-        }
-        BungeePlugin.getInstance().getDiscordToolbox().closeTicket(ticket);
-
-        BungeeToolbox.broadcast(player, "ticket.close.notify", baseComponents);
+        DataManager.getCachedTicket(ticketId);
+        if(!message.isEmpty())
+            ActivityToolbox.sendComment(ticket, user, message, true);
+        ActivityToolbox.sendClosedReopen(ticket, user, 1, true);
     }
 }

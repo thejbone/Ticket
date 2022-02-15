@@ -19,26 +19,19 @@ package io.github.lxgaming.ticket.bungee.command;
 import io.github.lxgaming.ticket.api.data.CommentData;
 import io.github.lxgaming.ticket.api.data.TicketData;
 import io.github.lxgaming.ticket.api.data.UserData;
-import io.github.lxgaming.ticket.api.util.Reference;
 import io.github.lxgaming.ticket.bungee.BungeePlugin;
 import io.github.lxgaming.ticket.bungee.util.ActivityToolbox;
 import io.github.lxgaming.ticket.bungee.util.BungeeToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
 import io.github.lxgaming.ticket.common.command.AbstractCommand;
 import io.github.lxgaming.ticket.common.configuration.Config;
-import io.github.lxgaming.ticket.common.configuration.Configuration;
 import io.github.lxgaming.ticket.common.configuration.category.TicketCategory;
 import io.github.lxgaming.ticket.common.manager.DataManager;
 import io.github.lxgaming.ticket.common.util.Toolbox;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.accessibility.AccessibleIcon;
-import java.time.Instant;
 import java.util.List;
 
 public class CommentCommand extends AbstractCommand {

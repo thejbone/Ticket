@@ -75,8 +75,22 @@ public class DataManager {
                 if (user != null) {
                     return user;
                 }
-                
-                return TicketImpl.getInstance().getStorage().getQuery().createUser(key);
+                return TicketImpl.getInstance().getStorage().getQuery().createUser(key, "Unknown");
+            } catch (Exception ex) {
+                Ticket.getInstance().getLogger().error("Encountered an error processing DataManager::getOrCreateUser", ex);
+                return null;
+            }
+        }));
+    }
+
+    public static Optional<UserData> getOrCreateUserName(UUID uniqueId, String name) {
+        return Optional.ofNullable(getUserCache().get(uniqueId, key -> {
+            try {
+                UserData user = TicketImpl.getInstance().getStorage().getQuery().getUser(key);
+                if (user != null) {
+                    return user;
+                }
+                return TicketImpl.getInstance().getStorage().getQuery().createUser(key, name);
             } catch (Exception ex) {
                 Ticket.getInstance().getLogger().error("Encountered an error processing DataManager::getOrCreateUser", ex);
                 return null;
@@ -115,14 +129,26 @@ public class DataManager {
         return tickets;
     }
 
-    public static Collection<TicketData> getCachedOpenTicketsByDiscordId(long discordId) {
-        Collection<TicketData> tickets = Sets.newTreeSet();
-        for (TicketData ticket : getTicketCache().asMap().values()) {
-            if (ticket.getStatus() == 0 && ticket.getDiscordMsgId() == discordId) {
-                getCachedTicket(ticket.getId()).ifPresent(tickets::add);
+    public static Optional<TicketData> getByDiscordMessageID(long discordId) {
+        try {
+            TicketData ticket = TicketImpl.getInstance().getStorage().getQuery().getTicketByDiscordMessageID(discordId);
+            Optional<TicketData> ticketData;
+            if(ticket != null){
+                ticketData = getCachedTicket(ticket.getId());
+                if (!ticketData.isPresent()) {
+                    ticketData = Optional.of(ticket);
+                }
+                Collection<CommentData> comments = TicketImpl.getInstance().getStorage().getQuery().getComments(ticketData.get().getId());
+                if (comments != null) {
+                    ticketData.get().setComments(comments);
+                }
+                return ticketData;
             }
+        } catch (Exception e){
+            Ticket.getInstance().getLogger().error("Encountered an error processing DataManager::getByDiscordMessageID", e);
+            return Optional.empty();
         }
-        return tickets;
+        return Optional.empty();
     }
 
     public static Collection<TicketData> getCachedUnreadTickets(UUID uniqueId) {
@@ -205,7 +231,6 @@ public class DataManager {
             if (ticket == null) {
                 return Optional.empty();
             }
-            
             CommentData comment = TicketImpl.getInstance().getStorage().getQuery().createComment(ticketId, uniqueId, timestamp, text);
             ticket.getComments().add(comment);
             return Optional.of(comment);

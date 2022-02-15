@@ -21,6 +21,7 @@ import io.github.lxgaming.ticket.api.data.LocationData;
 import io.github.lxgaming.ticket.api.data.TicketData;
 import io.github.lxgaming.ticket.api.data.UserData;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
@@ -33,7 +34,7 @@ public interface Query {
     
     TicketData createTicket(UUID uniqueId, Instant timestamp, LocationData location, String text, int tier) throws Exception;
     
-    UserData createUser(UUID uniqueId) throws Exception;
+    UserData createUser(UUID uniqueId, String name) throws Exception;
     
     Collection<CommentData> getComments(int ticketId) throws Exception;
     
@@ -50,4 +51,6 @@ public interface Query {
     boolean updateTicket(TicketData ticket);
     
     boolean updateUser(UserData user);
+
+    TicketData getTicketByDiscordMessageID(long discordId) throws SQLException;
 }

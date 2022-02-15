@@ -34,6 +34,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 public class MySQLQuery implements Query {
@@ -153,8 +154,8 @@ public class MySQLQuery implements Query {
         }
     }
     
-    public UserData createUser(UUID uniqueId) throws SQLException {
-        String username = Ticket.getInstance().getPlatform().getUsername(uniqueId).orElse("Unknown");
+    public UserData createUser(UUID uniqueId, String name) throws SQLException {
+        String username = Ticket.getInstance().getPlatform().getUsername(uniqueId).orElse(name);
         try (Connection connection = storage.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(""
                     + "INSERT INTO `user`(`unique_id`, `name`) VALUE (?, ?)")) {
@@ -208,6 +209,34 @@ public class MySQLQuery implements Query {
                         return null;
                     }
                     
+                    TicketData ticket = new TicketData();
+                    ticket.setId(resultSet.getInt("id"));
+                    ticket.setUser(UUID.fromString(resultSet.getString("user")));
+                    ticket.setTimestamp(resultSet.getTimestamp("timestamp").toInstant());
+                    ticket.setLocation(Toolbox.parseJson(resultSet.getString("location"), LocationData.class).orElse(null));
+                    ticket.setText(resultSet.getString("text"));
+                    ticket.setStatus(resultSet.getInt("status"));
+                    ticket.setTier(resultSet.getInt("tier"));
+                    ticket.setDiscordMsgId(resultSet.getLong("discordMsgId"));
+                    ticket.setRead(resultSet.getBoolean("read"));
+                    ticket.setComments(Sets.newTreeSet());
+                    return ticket;
+                }
+            }
+        }
+    }
+    @Override
+    public TicketData getTicketByDiscordMessageID(long discordMsgId) throws SQLException {
+        try (Connection connection = storage.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(""
+                    + "SELECT * FROM `ticket` WHERE `discordMsgId` = ? LIMIT 0, 1")) {
+                preparedStatement.setLong(1, discordMsgId);
+
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        return null;
+                    }
+
                     TicketData ticket = new TicketData();
                     ticket.setId(resultSet.getInt("id"));
                     ticket.setUser(UUID.fromString(resultSet.getString("user")));
@@ -333,4 +362,5 @@ public class MySQLQuery implements Query {
             return false;
         }
     }
+
 }

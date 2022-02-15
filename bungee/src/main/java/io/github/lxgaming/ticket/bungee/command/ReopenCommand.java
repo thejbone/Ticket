@@ -18,7 +18,9 @@ package io.github.lxgaming.ticket.bungee.command;
 
 import io.github.lxgaming.ticket.api.Ticket;
 import io.github.lxgaming.ticket.api.data.TicketData;
+import io.github.lxgaming.ticket.api.data.UserData;
 import io.github.lxgaming.ticket.bungee.BungeePlugin;
+import io.github.lxgaming.ticket.bungee.util.ActivityToolbox;
 import io.github.lxgaming.ticket.bungee.util.BungeeToolbox;
 import io.github.lxgaming.ticket.common.TicketImpl;
 import io.github.lxgaming.ticket.common.command.AbstractCommand;
@@ -91,23 +93,8 @@ public class ReopenCommand extends AbstractCommand {
             sender.sendMessage(BungeeToolbox.getTextPrefix().append("An error has occurred. Details are available in console.").color(ChatColor.RED).create());
             return;
         }
-        
-        BungeeToolbox.sendRedisMessage("TicketReopen", jsonObject -> {
-            jsonObject.add("ticket", Configuration.getGson().toJsonTree(ticket));
-            jsonObject.addProperty("by", Ticket.getInstance().getPlatform().getUsername(BungeeToolbox.getUniqueId(sender)).orElse("Unknown"));
-        });
-        
-        BaseComponent[] baseComponents = BungeeToolbox.getTextPrefix()
-                .append("Ticket #" + ticket.getId() + " was reopened by ").color(ChatColor.GOLD)
-                .append(Ticket.getInstance().getPlatform().getUsername(BungeeToolbox.getUniqueId(sender)).orElse("Unknown")).color(ChatColor.YELLOW)
-                .create();
-        
-        ProxiedPlayer player = BungeePlugin.getInstance().getProxy().getPlayer(ticket.getUser());
-        if (player != null) {
-            player.sendMessage(baseComponents);
-        }
-        BungeePlugin.getInstance().getDiscordToolbox().sendTicketData(ticket, false);
 
-        BungeeToolbox.broadcast(player, "ticket.reopen.notify", baseComponents);
+        UserData user = DataManager.getOrCreateUser(BungeeToolbox.getUniqueId(sender)).orElse(null);
+        ActivityToolbox.sendClosedReopen(ticket, user, 0, true);
     }
 }
