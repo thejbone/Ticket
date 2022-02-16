@@ -9,6 +9,7 @@ import io.github.lxgaming.ticket.common.manager.DataManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 
 import java.awt.*;
@@ -27,7 +28,7 @@ public class DiscordToolbox {
     public void init(){
         try {
             discordCategory = TicketImpl.getInstance().getConfig().map(Config::getDiscord).orElseThrow(IllegalStateException::new);
-            this.jda = JDABuilder.createDefault(discordCategory.getToken()).build();
+            this.jda = JDABuilder.createDefault(discordCategory.getToken()).setActivity(Activity.watching(discordCategory.getActivity())).build();
             this.jda.addEventListener(new DiscordListener());
         } catch (Exception e){
             e.printStackTrace();

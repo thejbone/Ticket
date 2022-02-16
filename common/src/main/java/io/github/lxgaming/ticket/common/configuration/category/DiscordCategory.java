@@ -8,7 +8,6 @@ public class DiscordCategory {
     private String textChannelTier1 = "TextChannelTier1";
     private String textChannelTier2 = "TextChannelTier2";
     private String textChannelTier3 = "TextChannelTier3";
-    private String textChannelTier4 = "TextChannelTier4";
 
     public String getToken() {
         return token;
@@ -34,7 +33,4 @@ public class DiscordCategory {
         return textChannelTier3;
     }
 
-    public String getTextChannelTier4() {
-        return textChannelTier4;
-    }
 }
